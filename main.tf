@@ -1,25 +1,48 @@
 # modules/cloudwatch-dashboard/main.tf
+# stacks/payments-prod-dashboard/main.tf
+
+terraform {
+  required_providers {
+    aws = { source = "hashicorp/aws", version = "~> 5.0" }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+module "dashboard" {
+  source = "../../modules/cloudwatch-dashboard"   # relative path inside the same repo
+
+  service_name     = "payments-api"
+  environment      = "prod"
+  alb_arn_suffix   = "app/Spacelift-ALB/701b9c7295718017"
+  rds_instance_id  = "payments-prod-db"
+  owner_team       = "payments-platform"
+}
+
+output "dashboard_url" {
+  value = module.dashboard.dashboard_url
+}
+
 
 variable "service_name"    { 
   type = string
-  default = ""
+  default = "payments-api"
   }
 variable "environment"     { 
   type = string
-  default = ""
+  default = "prod"
   }
 variable "alb_arn_suffix"   { 
   type = string
-  default = ""
+  default = "app/Spacelift-ALB/701b9c7295718017"
   }
 variable "rds_instance_id"  { 
   type = string
-  default = ""
+  default = "payments-prod-db"
   }
-variable "owner_team"       { 
-  type = string
-  default = ""
-  }
+
 
 locals {
   dashboard_body = jsonencode({
@@ -85,3 +108,6 @@ resource "aws_cloudwatch_dashboard" "this" {
 output "dashboard_url" {
   value = "https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=${aws_cloudwatch_dashboard.this.dashboard_name}"
 }
+
+# stacks/payments-prod-dashboard/main.tf
+
