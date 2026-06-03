@@ -1,10 +1,25 @@
 # modules/cloudwatch-dashboard/main.tf
 
-variable "service_name"    { type = string }
-variable "environment"     { type = string }
-variable "alb_arn_suffix"  { type = string }
-variable "rds_instance_id" { type = string }
-variable "owner_team"      { type = string }
+variable "service_name"    { 
+  type = string
+  default = ""
+  }
+variable "environment"     { 
+  type = string
+  default = ""
+  }
+variable "alb_arn_suffix"   { 
+  type = string
+  default = ""
+  }
+variable "rds_instance_id"  { 
+  type = string
+  default = ""
+  }
+variable "owner_team"       { 
+  type = string
+  default = ""
+  }
 
 locals {
   dashboard_body = jsonencode({
