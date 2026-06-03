@@ -1,14 +1,5 @@
 # modules/cloudwatch-dashboard/main.tf
 # stacks/payments-prod-dashboard/main.tf
-module "dashboard" {
-  source = "../../modules/cloudwatch-dashboard"   # relative path inside the same repo
-
-  service_name     = "payments-api"
-  environment      = "prod"
-  alb_arn_suffix   = "app/Spacelift-ALB/701b9c7295718017"
-  rds_instance_id  = "payments-prod-db"
-  owner_team       = "payments-platform"
-}
 
 
 variable "service_name"    { 
