@@ -1,24 +1,26 @@
-# modules/cloudwatch-dashboard/main.tf
-# stacks/payments-prod-dashboard/main.tf
+# CloudWatch Dashboard Configuration for Payments API Monitoring
+# This file defines variables, dashboard metrics, and outputs for the monitoring infrastructure.
 
-
-variable "service_name"    { 
-  type = string
+# Service name used for dashboard naming and resource identification
+variable "service_name" {
+  type    = string
   default = "payments-api"
-  }
-variable "environment"     { 
-  type = string
-  default = "prod"
-  }
-variable "alb_arn_suffix"   { 
-  type = string
-  default = "app/Spacelift-ALB/701b9c7295718017"
-  }
-variable "rds_instance_id"  { 
-  type = string
-  default = "payments-prod-db"
-  }
+}
 
+variable "environment" {
+  type    = string
+  default = "prod"
+}
+
+variable "alb_arn_suffix" {
+  type    = string
+  default = "app/Spacelift-ALB/701b9c7295718017"
+}
+
+variable "rds_instance_id" {
+  type    = string
+  default = "payments-prod-db"
+}
 
 locals {
   dashboard_body = jsonencode({
@@ -33,8 +35,8 @@ locals {
           title  = "ALB Request Count & 5XX"
           region = "us-east-1"
           metrics = [
-            ["AWS/ApplicationELB", "RequestCount",    "LoadBalancer", var.alb_arn_suffix],
-            [".",                  "HTTPCode_ELB_5XX_Count", ".", "."],
+            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", var.alb_arn_suffix],
+            [".", "HTTPCode_ELB_5XX_Count", ".", "."],
           ]
           stat   = "Sum"
           period = 60
@@ -50,8 +52,7 @@ locals {
           title  = "ALB Target Latency p95"
           region = "us-east-1"
           metrics = [
-            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", var.alb_arn_suffix,
-              { stat = "p95" }],
+            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", var.alb_arn_suffix, { stat = "p95" }],
           ]
           period = 60
         }
@@ -66,8 +67,8 @@ locals {
           title  = "RDS CPU & Connections"
           region = "us-east-1"
           metrics = [
-            ["AWS/RDS", "CPUUtilization",     "DBInstanceIdentifier", var.rds_instance_id],
-            [".",       "DatabaseConnections", ".",                    "."],
+            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", var.rds_instance_id],
+            [".", "DatabaseConnections", ".", "."],
           ]
           period = 300
         }
@@ -81,9 +82,8 @@ resource "aws_cloudwatch_dashboard" "this" {
   dashboard_body = local.dashboard_body
 }
 
+# Output the CloudWatch dashboard URL for easy access
 output "dashboard_url" {
   value = "https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=${aws_cloudwatch_dashboard.this.dashboard_name}"
 }
-
-# stacks/payments-prod-dashboard/main.tf
 
