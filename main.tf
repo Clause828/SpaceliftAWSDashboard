@@ -88,7 +88,8 @@ output "dashboard_url" {
 }
 
 resource "aws_s3_bucket" "demo_bucket" {
-  bucket = "spacelift-demo-bucket-123awd456"
+  bucket        = "spacelift-demo-bucket-123awd456"
+  force_destroy = true
   tags = {
     environment = var.environment
     managed_by  = "spacelift-demo"
