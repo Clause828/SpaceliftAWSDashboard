@@ -12,17 +12,25 @@ variable "environment" {
   default = "prod"
 }
 
-variable "alb_arn_suffix" {
-  type    = string
-  default = "app/Spacelift-ALB/701b9c7295718017"
-}
-
-variable "rds_instance_id" {
-  type    = string
-  default = "payments-prod-db"
-}
-
 locals {
+  dashboard_region = "us-east-1"
+
+  alb_peak_lcu_metrics = [
+    ["AWS/ApplicationELB", "PeakLCUs", "LoadBalancer", "app/Spacelift-ALB/bfc0df6a93c97a22"],
+  ]
+
+  billing_metrics = [
+    ["AWS/Billing", "EstimatedCharges", "Currency", "USD"],
+  ]
+
+  ec2_cpu_metrics = [
+    ["AWS/EC2", "CPUUtilization"],
+  ]
+
+  eks_4xx_metrics = [
+    ["AWS/EKS", "apiserver_request_total_4XX", "ClusterName", "eks-cluster"],
+  ]
+
   dashboard_body = jsonencode({
     widgets = [
       {
@@ -32,14 +40,11 @@ locals {
         width  = 12
         height = 6
         properties = {
-          title  = "ALB Request Count & 5XX"
-          region = "us-east-1"
-          metrics = [
-            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", var.alb_arn_suffix],
-            [".", "HTTPCode_ELB_5XX_Count", ".", "."],
-          ]
-          stat   = "Sum"
-          period = 60
+          title   = "ALB Peak LCUs"
+          region  = local.dashboard_region
+          metrics = local.alb_peak_lcu_metrics
+          stat    = "Maximum"
+          period  = 300
         }
       },
       {
@@ -49,28 +54,39 @@ locals {
         width  = 12
         height = 6
         properties = {
-          title  = "ALB Target Latency p95"
-          region = "us-east-1"
-          metrics = [
-            ["AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", var.alb_arn_suffix, { stat = "p95" }],
-          ]
-          period = 60
+          title   = "Estimated Charges (USD)"
+          region  = local.dashboard_region
+          metrics = local.billing_metrics
+          stat    = "Maximum"
+          period  = 21600
         }
       },
       {
         type   = "metric"
         x      = 0
         y      = 6
-        width  = 24
+        width  = 12
         height = 6
         properties = {
-          title  = "RDS CPU & Connections"
-          region = "us-east-1"
-          metrics = [
-            ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", var.rds_instance_id],
-            [".", "DatabaseConnections", ".", "."],
-          ]
-          period = 300
+          title   = "EC2 CPU Utilization"
+          region  = local.dashboard_region
+          metrics = local.ec2_cpu_metrics
+          stat    = "Average"
+          period  = 300
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title   = "EKS API Server 4XX Requests"
+          region  = local.dashboard_region
+          metrics = local.eks_4xx_metrics
+          stat    = "Sum"
+          period  = 300
         }
       },
     ]
@@ -98,4 +114,3 @@ resource "aws_s3_bucket" "demo_bucket" {
     workflow    = "Waterfall"
   }
 }
-
